@@ -559,6 +559,44 @@ class Tools
     }
 
     /**
+     * Função responsável por remover uma Tag de um lead por email
+     *
+     * @param array $dados E-mail do lead e Id da Tag a sem removida
+     *
+     * @access public
+     * @return array
+     */
+    public function removeTagLead(array $dados, array $params = []) :array
+    {
+        try {
+            $params = array_filter($params, function($item) {
+                return  !in_array($item['name'], ['tag', 'email']);
+            }, ARRAY_FILTER_USE_BOTH);
+            $params[] = [
+                'name' => 'email',
+                'value' => $dados['Email']
+            ];
+            $params[] = [
+                'name' => 'tag',
+                'value' => $dados['Tag']
+            ];
+            $dados = $this->delete('Tag', $params);
+            if ($dados['httpCode'] == 200) {
+                return $dados;
+            }
+            if (isset($dados['body']->message)) {
+                throw new Exception($dados['body']->message, 1);
+            }
+            if (isset($dados['body']->mensagens)) {
+                throw new Exception(implode("\r\n", $dados['body']->mensagens), 1);
+            }
+            throw new Exception(json_encode($dados), 1);
+        } catch (Exception $error) {
+            throw $error;
+        }
+    }
+
+    /**
      * Execute a GET Request
      *
      * @param string $path
